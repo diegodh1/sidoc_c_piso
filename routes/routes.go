@@ -33,7 +33,7 @@ func CreateUser(db *gorm.DB) gin.HandlerFunc {
 func GetUsersERP(db *gorm.DB) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		response := handler.GetUsersERP(db)
-		c.JSON(400, gin.H{
+		c.JSON(200, gin.H{
 			"payload": response.Payload,
 			"message": response.Message,
 			"status":  response.Status,
