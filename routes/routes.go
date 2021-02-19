@@ -44,7 +44,7 @@ func GetUsersERP(db *gorm.DB) gin.HandlerFunc {
 
 func UpdateProfileUser(db *gorm.DB) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
-		var user handler.AppUser
+		var user handler.User
 		err := c.BindJSON(&user)
 		switch {
 		case err != nil:
@@ -52,7 +52,7 @@ func UpdateProfileUser(db *gorm.DB) gin.HandlerFunc {
 				"payload": nil, "message": "petición mal estructurada", "status": 400,
 			})
 		default:
-			response := handler.UpdateProfileUser(&user, db)
+			response := handler.UpdateProfileUser(&user.User, &user.Profiles, db)
 			c.JSON(response.Status, gin.H{
 				"payload": response.Payload,
 				"message": response.Message,
@@ -104,6 +104,31 @@ func Login(db *gorm.DB) gin.HandlerFunc {
 				"status":  response.Status,
 			})
 		}
+	}
+	return gin.HandlerFunc(fn)
+}
+
+func FindUserById(db *gorm.DB) gin.HandlerFunc{
+	fn := func(c *gin.Context) {
+		param := c.Param("userID")
+		response := handler.FindUserById(param, db)
+		c.JSON(response.Status, gin.H{
+			"payload": response.Payload,
+			"message": response.Message,
+			"status":  response.Status,
+		})
+	}
+	return gin.HandlerFunc(fn)
+}
+
+func GetAllProfiles(db *gorm.DB) gin.HandlerFunc{
+	fn := func(c *gin.Context) {
+		response := handler.GetAllProfiles(db)
+		c.JSON(response.Status, gin.H{
+			"payload": response.Payload,
+			"message": response.Message,
+			"status":  response.Status,
+		})
 	}
 	return gin.HandlerFunc(fn)
 }

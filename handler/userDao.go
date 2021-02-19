@@ -51,7 +51,7 @@ func GetUsersERP(db *gorm.DB) Response {
 	return Response{Payload: usuarios, Message: "OK", Status: 200}
 }
 
-func UpdateProfileUser(user *AppUser, db *gorm.DB) Response {
+func UpdateProfileUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) Response {
 	switch {
 	case strings.TrimSpace(user.AppUserName) == "":
 		return Response{Payload: nil, Message: "El nombre es obligatorio", Status: 400}
@@ -70,6 +70,10 @@ func UpdateProfileUser(user *AppUser, db *gorm.DB) Response {
 		if queryRes := db.Where("app_user_id = ?", user.AppUserID).Omit("AppUserID", "AppUserPassword", "AppUserCdate").Updates(&user); queryRes.Error != nil || queryRes.RowsAffected == 0 {
 			return Response{Payload: nil, Message: "Error al actualizar o no se encontró el usuario", Status: 404}
 		}
+		for _, v := range *profiles {
+            updateAssign(&v, db)
+        }
+		
 		return Response{Payload: nil, Message: "Registro actualizado!", Status: 200}
 	}	
 }
@@ -85,8 +89,8 @@ func erpVerification(id int, db *gorm.DB) bool{
 
 //Login User
 func Login(userID string, password string, db *gorm.DB) Response {
-	userApp := AppUser{AppUserID: userID}
-	if err := db.Raw("SELECT * FROM app_user WHERE app_user_id = ?", userID).Scan(&userApp).Error; err != nil {
+	userApp := AppUser{}
+	if err := scanUser(userID, &userApp, db); err != nil {
 		return Response{Payload: nil, Message: "El usuario no está registrado en la base de datos", Status: 403}
 	}
 	switch {
@@ -123,4 +127,28 @@ func userVerification(userID string, db *gorm.DB) bool{
 	}
 	return true
 
+}
+
+func scanUser(userID string, userApp *AppUser, db *gorm.DB) error {
+
+	if err := db.Raw("SELECT * FROM app_user WHERE app_user_id = ?", userID).Scan(userApp).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func FindUserById(userID string, db *gorm.DB) Response {
+	userApp := AppUser{}
+	if err := scanUser(userID, &userApp, db); err != nil {
+		return Response{Payload: nil, Message: "El usuario no está registrado en la base de datos", Status: 403}
+	}
+	profiles := getProfiles(userID, db)
+	var payload struct {
+			User     AppUser
+			Profiles []AppUserProfile
+	}
+	payload.Profiles = profiles
+	payload.User = userApp
+
+	return Response{Payload: payload, Message: "OK", Status: 200}
 }
