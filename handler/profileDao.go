@@ -27,7 +27,7 @@ func assignProfile(profile *AppUserProfile, db *gorm.DB) error{
 
 func getProfiles(userID string, db *gorm.DB) []AppUserProfile {
 	profiles := []AppUserProfile{}
-	if err := db.Where("user_id = ? and status = ?", userID, true).Find(&profiles).Error; err != nil {
+	if err := db.Where("app_user_id = ? and app_user_profile_status = ?", userID, true).Find(&profiles).Error; err != nil {
 		return profiles
 	}
 	return profiles
