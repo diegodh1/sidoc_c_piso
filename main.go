@@ -22,5 +22,8 @@ func main() {
 	}
 	r.POST("/user/create", routes.CreateUser(db))
 	r.GET("/user/erp", routes.GetUsersERP(db))
+	r.PATCH("/user/update", routes.UpdateProfileUser(db))
+	r.POST("/profile/create", routes.CreateProfile(db))
+	r.POST("/user/login", routes.Login(db))
 	r.Run(":3000")
 }
