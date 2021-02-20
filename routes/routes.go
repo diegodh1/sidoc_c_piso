@@ -97,7 +97,7 @@ func Login(db *gorm.DB) gin.HandlerFunc {
 				"status":  400,
 			})
 		default:
-			response := handler.Login(userLogin.UserID, userLogin.Password, db)
+			response := handler.Login(userLogin.AppUserID, userLogin.AppUserPassword, db)
 			c.JSON(response.Status, gin.H{
 				"payload": response.Payload,
 				"message": response.Message,

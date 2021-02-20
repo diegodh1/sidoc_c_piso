@@ -4,7 +4,7 @@ import (
 	"log"
 	handler "sidoc/handler"
 	routes "sidoc/routes"
-
+	middlewares "sidoc/middlewares"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,12 +20,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	r.POST("/user/create", routes.CreateUser(db))
 	r.POST("/profile/create", routes.CreateProfile(db))
 	r.POST("/user/login", routes.Login(db))
 	r.GET("/user/erp", routes.GetUsersERP(db))
 	r.GET("/user/search/:userID", routes.FindUserById(db))
 	r.GET("/profile/getAll", routes.GetAllProfiles(db))
 	r.POST("/user/update", routes.UpdateProfileUser(db))
+	r.Use(middlewares.TokenMiddleware(0))
+	r.POST("/user/create", routes.CreateUser(db))
 	r.Run(":3000")
 }

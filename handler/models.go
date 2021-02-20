@@ -31,8 +31,8 @@ type Response struct {
 
 //LoginUser struct login
 type LoginUser struct {
-	UserID   string `json:"userID"`
-	Password string `json:"password"`
+	AppUserID   string `json:"AppUserID"`
+	AppUserPassword string `json:"AppUserPassword"`
 }
 
 //User struct

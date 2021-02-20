@@ -3,16 +3,15 @@ package handler
 import (
 	"golang.org/x/crypto/bcrypt"
 	"github.com/dgrijalva/jwt-go"
-	"time"
+	"strings"
 	)
 
-func CreateToken(userid string) (string, error) {
+func CreateToken(userid string, rols []string) (string, error) {
 	var err error
 	//Creating Access Token
 	atClaims := jwt.MapClaims{}
-	atClaims["authorized"] = true
 	atClaims["user_id"] = userid
-	atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+	atClaims["rols"] = strings.Join(rols,", ")
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	token, err := at.SignedString([]byte("ACCESS_SECRET"))
 	if err != nil {
