@@ -4,7 +4,7 @@ import (
 	"log"
 	handler "sidoc/handler"
 	routes "sidoc/routes"
-	middlewares "sidoc/middlewares"
+	
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,7 +26,9 @@ func main() {
 	r.GET("/user/search/:userID", routes.FindUserById(db))
 	r.GET("/profile/getAll", routes.GetAllProfiles(db))
 	r.POST("/user/update", routes.UpdateProfileUser(db))
-	r.Use(middlewares.TokenMiddleware(0))
+	r.POST("/user/pass/code", routes.GenerateResetPass(db))
+	r.POST("/user/pass/reset", routes.ResetPass(db))
+	//r.Use(middlewares.TokenMiddleware(0))
 	r.POST("/user/create", routes.CreateUser(db))
 	r.Run(":3000")
 }

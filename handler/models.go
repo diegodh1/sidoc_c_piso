@@ -54,3 +54,15 @@ type AppProfile struct {
 	AppProfileStatus *bool `gorm:"default:true;"`
 	AppProfileCdate time.Time `gorm:"default:now();"`
 }
+
+type VerificationData struct {
+	Email     string    
+	Code      string    
+	ExpiresAt time.Time
+}
+
+type UserPassReset struct {
+	AppUserID   string `json:"AppUserID" validate:"required"`
+	Code      string    `json:"Code"`
+	AppUserPassword string `json:"AppUserPassword"`
+}

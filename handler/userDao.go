@@ -3,11 +3,8 @@ package handler
 import (
 	"strings"
 	"gorm.io/gorm"
+	"time"
 )
-
-type result struct {
-	ID string
-}
 
 //CreateUser func
 func CreateUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) Response {
@@ -18,7 +15,7 @@ func CreateUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) Response
 		return Response{Payload: nil, Message: "El nombre es obligatorio", Status: 400}
 	case strings.TrimSpace(user.AppUserLastName) == "":
 		return Response{Payload: nil, Message: "El apellido es obligatorio", Status: 400}	
-	case strings.TrimSpace(user.AppUserEmail) == "" || !strings.Contains(user.AppUserEmail, "@"):
+	case strings.TrimSpace(user.AppUserEmail) == "" || !ValidEmail(user.AppUserEmail):
 		return Response{Payload: nil, Message: "El correo es obligatorio", Status: 400}
 	case user.AppUserPassword == "":
 		return Response{Payload: nil, Message: "La contraseña no puede ser vacia", Status: 400}	
@@ -61,7 +58,7 @@ func UpdateProfileUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) R
 		return Response{Payload: nil, Message: "El nombre es obligatorio", Status: 400}
 	case strings.TrimSpace(user.AppUserLastName) == "":
 		return Response{Payload: nil, Message: "El apellido es obligatorio", Status: 400}	
-	case strings.TrimSpace(user.AppUserEmail) == "" || !strings.Contains(user.AppUserEmail, "@"):
+	case strings.TrimSpace(user.AppUserEmail) == "" || !ValidEmail(user.AppUserEmail):
 		return Response{Payload: nil, Message: "El correo es obligatorio", Status: 400}
 	case user.AppUserErpID == -1:
 		return Response{Payload: nil, Message: "Debe seleccionar un usuario de ERP", Status: 400}
@@ -157,4 +154,58 @@ func FindUserById(userID string, db *gorm.DB) Response {
 	payload.User = userApp
 
 	return Response{Payload: payload, Message: "OK", Status: 200}
+}
+
+func GeneratePassResetCode(userID string, db *gorm.DB) Response {
+	userApp := AppUser{}
+	if err := scanUser(userID, &userApp, db); err != nil {
+		return Response{Payload: nil, Message: "El usuario no está registrado en la base de datos", Status: 403}
+	}
+	verCod := EncodeToString(8)
+	if !EnviarCorreo(userApp.AppUserEmail, userID, verCod) {
+		return Response{Payload: nil, Message: "No se pudo enviar el codigo de verificación", Status: 500}
+	}
+	verificationData := VerificationData{
+		Email: userApp.AppUserEmail,
+		Code:  verCod,
+		ExpiresAt: time.Now().Add(time.Minute * time.Duration(5)),
+	}
+	if err := db.Create(&verificationData).Error; err != nil {
+		if strings.Contains(err.Error(), "PRIMARY KEY") {
+			return Response{Payload: nil, Message: "Ya se ha solicitado el cambio, revise su correo o intentelo de nuevo en cinco minutos", Status: 400}
+		}
+		return Response{Payload: nil, Message: "Error interno al guardar el codigo de verificación", Status: 500}
+	}
+	
+	mail := strings.Split(userApp.AppUserEmail, "@")
+	
+	return Response{Payload: nil, Message: "OK: Revise su correo: "+"@"+mail[1], Status: 200}
+}
+
+func ResetWithNewPass(user *UserPassReset, db *gorm.DB) Response {
+	userApp := AppUser{}
+	if err := scanUser(user.AppUserID, &userApp, db); err != nil {
+		return Response{Payload: nil, Message: "El usuario no está registrado en la base de datos", Status: 403}
+	}
+	datVer := VerificationData{}
+	if err := db.Raw("SELECT * FROM verification_data WHERE email = ?", userApp.AppUserEmail).Scan(&datVer).Error; err != nil {
+		return Response{Payload: nil, Message: "No existe asignado un cambio de contraseña", Status: 403} 
+	}
+	if datVer.Code != user.Code {
+		return Response{Payload: nil, Message: "El codigo suministrado no corresponde al enviado por correo", Status: 403} 
+	}
+	if datVer.ExpiresAt.Before(time.Now()) {
+		return Response{Payload: nil, Message: "El codigo suministrado ya expiro", Status: 403} 
+	}
+	
+	userApp.AppUserPassword = HashPassword(userApp.AppUserPassword)
+	if user.AppUserPassword == "" {
+		return Response{Payload: nil, Message: "No se pudo crear el registro", Status: 500}
+	}
+	if queryRes := db.Where("app_user_password = ?", user.AppUserID).Omit("AppUserID", "AppUserName", "AppUserLastName", "AppUserEmail", "AppUserErpID", "AppUserStatus", "AppUserCdate").Updates(&user); queryRes.Error != nil || queryRes.RowsAffected == 0 {
+		return Response{Payload: nil, Message: "Error al actualizar o no se encontró el usuario", Status: 404}
+	}
+
+	return Response{Payload: nil, Message: "OK", Status: 200}
+
 }

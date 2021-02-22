@@ -132,3 +132,52 @@ func GetAllProfiles(db *gorm.DB) gin.HandlerFunc{
 	}
 	return gin.HandlerFunc(fn)
 }
+
+func GenerateResetPass(db *gorm.DB)  gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		var user handler.UserPassReset
+		err := c.BindJSON(&user)
+		switch {
+		case err != nil:
+			c.JSON(400, gin.H{
+				"message": "Petición mal estructurada",
+				"payload": nil,
+				"status":  400,
+			})
+		default:
+			response := handler.GeneratePassResetCode(user.AppUserID, db)
+			c.JSON(response.Status, gin.H{
+				"payload": response.Payload,
+				"message": response.Message,
+				"status":  response.Status,
+			})
+		}
+	}
+	
+	return gin.HandlerFunc(fn)
+}
+
+func ResetPass(db *gorm.DB)  gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		var user handler.UserPassReset
+		err := c.BindJSON(&user)
+		switch {
+		case err != nil:
+			c.JSON(400, gin.H{
+				"message": "Petición mal estructurada",
+				"payload": nil,
+				"status":  400,
+			})
+		default:
+			response := handler.ResetWithNewPass(&user, db)
+			c.JSON(response.Status, gin.H{
+				"payload": response.Payload,
+				"message": response.Message,
+				"status":  response.Status,
+			})
+		}
+	}
+	
+	return gin.HandlerFunc(fn)
+}
+

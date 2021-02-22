@@ -5,10 +5,6 @@ import "strings"
 
 func decodeJWT(tokenReq string) (string, []string) {
 	token, err := jwt.Parse(tokenReq, func(token *jwt.Token) (interface{}, error) {
-	   //Make sure that the token method conform to "SigningMethodHMAC"
-	   /*if _, ok := token.Method.(*jwt.SigningMethodHS256); !ok {
-		  return "", nil
-	   }*/
 	   return []byte("ACCESS_SECRET"), nil
 	})
 	if err != nil {
