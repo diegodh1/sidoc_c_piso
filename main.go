@@ -22,7 +22,7 @@ func main() {
 	}
 	r.POST("/profile/create", routes.CreateProfile(db))
 	r.POST("/user/login", routes.Login(db))
-	r.GET("/user/erp", routes.GetUsersERP(db))
+	r.GET("/user/erp/:name", routes.GetUsersERP(db))
 	r.GET("/user/search/:userID", routes.FindUserById(db))
 	r.GET("/profile/getAll", routes.GetAllProfiles(db))
 	r.POST("/user/update", routes.UpdateProfileUser(db))

@@ -9,7 +9,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
-	"github.com/go-gomail/gomail"
+	gomail "gopkg.in/gomail.v2"
 	)
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -90,10 +90,8 @@ func EnviarCorreo(to string, id string,codVerf string) bool {
     </html>`, to, codVerf))
 
     // Send the email to user
-    d := gomail.NewPlainDialer("mail.sidocsa.com", 993, from, pass)
+    d := gomail.NewDialer("mail.sidocsa.com", 465, from, pass)
     if err := d.DialAndSend(m); err != nil {
-		fmt.Print("JajajaSISAS")
-		fmt.Print(err)
         return false
     }
     return true

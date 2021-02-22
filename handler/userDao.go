@@ -45,13 +45,6 @@ func CreateUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) Response
 	}
 }
 
-//GetUsersERP FUNC
-func GetUsersERP(db *gorm.DB) Response {
-	usuarios := []UsuariosErp{}
-	db.Find(&usuarios)
-	return Response{Payload: usuarios, Message: "OK", Status: 200}
-}
-
 func UpdateProfileUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) Response {
 	switch {
 	case strings.TrimSpace(user.AppUserName) == "":
@@ -208,4 +201,12 @@ func ResetWithNewPass(user *UserPassReset, db *gorm.DB) Response {
 
 	return Response{Payload: nil, Message: "OK", Status: 200}
 
+}
+
+//GetUsersERP FUNC
+func GetUsersERP(name string, db *gorm.DB) Response {
+	usuarios := []UsuariosErp{}
+	db.Where("f552_nombre LIKE ?", "%"+name+"%").Find(&usuarios).Order("f552_rowid").Limit(10)
+    
+	return Response{Payload: usuarios, Message: "OK", Status: 200}
 }
