@@ -192,10 +192,10 @@ func ResetWithNewPass(user *UserPassReset, db *gorm.DB) Response {
 	}
 	
 	userApp.AppUserPassword = HashPassword(userApp.AppUserPassword)
-	if user.AppUserPassword == "" {
+	if userApp.AppUserPassword == "" {
 		return Response{Payload: nil, Message: "No se pudo crear el registro", Status: 500}
 	}
-	if queryRes := db.Where("app_user_password = ?", user.AppUserID).Omit("AppUserID", "AppUserName", "AppUserLastName", "AppUserEmail", "AppUserErpID", "AppUserStatus", "AppUserCdate").Updates(&user); queryRes.Error != nil || queryRes.RowsAffected == 0 {
+	if queryRes := db.Where("app_user_id = ?", userApp.AppUserID).Omit("AppUserID", "AppUserName", "AppUserLastName", "AppUserEmail", "AppUserErpID", "AppUserStatus", "AppUserCdate").Updates(&userApp); queryRes.Error != nil || queryRes.RowsAffected == 0 {
 		return Response{Payload: nil, Message: "Error al actualizar o no se encontró el usuario", Status: 404}
 	}
 

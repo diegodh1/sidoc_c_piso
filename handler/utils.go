@@ -9,7 +9,10 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
-	gomail "gopkg.in/gomail.v2"
+	"net"
+	"crypto/tls"
+	"net/smtp"
+	"errors"
 	)
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -59,39 +62,41 @@ func EnviarCorreo(to string, id string,codVerf string) bool {
 	
     from := "app.sidoc@sidocsa.com"
     pass := os.Getenv("SIDOC_EMAIL_PASS")
+	fromM := fmt.Sprintf("From: <%s>\r\n", from)
+	toM := fmt.Sprintf("To: <%s>\r\n", "recipient@gmail.com")
+	subject := "Subject: Cambio de contraseña\r\n"
+	body := fmt.Sprintf(
+		`<!DOCTYPE html>
+		<style>
+			body {
+			   font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+			   font-weight: 300;
+			}
+		</style>
+		<html>
+			<body><p>Hola buen d&iacute;a,</p>
+		<p>El siguiente correo es para realizar un cambio de contraseña.</strong> Por favor digite en la app este codigo de verf.</p>
+		<table table style="border-collapse: collapse; background-color: #fF6FE49; border-style: solid;" border="1">
+		<tbody>
+		<tr>
+		<td>Correo</td>
+		<td>Codigo de verf</td>
+		<td>%s</td>
+		<td>%s</td>
+		</tr>
+		</tbody>
+		</table>
+		<p>Sí usted no ha hecho esta solicitud, por favor haga caso omiso a este correo.</p>
+		<p>Correo generado automaticamente.</p></body>
+		</html>`, to, codVerf)
 
-    m := gomail.NewMessage()
-    m.SetHeader("From", from)
-    m.SetHeader("To", to)
-    m.SetHeader("Subject", "Cambio contraseña")
-    m.SetBody("text/html", fmt.Sprintf(
-	`<!DOCTYPE html>
-    <style>
-        body {
-           font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
-           font-weight: 300;
-        }
-    </style>
-    <html>
-        <body><p>Hola buen d&iacute;a,</p>
-    <p>El siguiente correo es para realizar un cambio de contraseña.</strong> Por favor digite en la app este codigo de verf.</p>
-    <table table style="border-collapse: collapse; background-color: #fF6FE49; border-style: solid;" border="1">
-    <tbody>
-    <tr>
-    <td>Correo</td>
-    <td>Codigo de verf</td>
-    <td>%s</td>
-    <td>%s</td>
-    </tr>
-    </tbody>
-    </table>
-    <p>Sí usted no ha hecho esta solicitud, por favor haga caso omiso a este correo.</p>
-    <p>Correo generado automaticamente.</p></body>
-    </html>`, to, codVerf))
 
+	msg := fromM+toM+subject+"\r\n"+body+"\r\nOk\r\n"
+    
+	auth := smtp.PlainAuth("", from, pass, "mail.sidocsa.com")
     // Send the email to user
-    d := gomail.NewDialer("mail.sidocsa.com", 465, from, pass)
-    if err := d.DialAndSend(m); err != nil {
+    
+    if err := SendMailTLS("mail.sidocsa.com:465", auth, from, []string{to}, []byte(msg)); err != nil {
         return false
     }
     return true
@@ -109,3 +114,63 @@ func EncodeToString(max int) string {
     return string(b)
 }
 
+func SendMailTLS(addr string, auth smtp.Auth, from string, to []string, msg []byte) error {
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return err
+	}
+	tlsconfig := &tls.Config{ServerName: host}
+	if err = validateLine(from); err != nil {
+		return err
+	}
+	for _, recp := range to {
+		if err = validateLine(recp); err != nil {
+			return err
+		}
+	}
+	conn, err := tls.Dial("tcp", addr, tlsconfig)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	c, err := smtp.NewClient(conn, host)
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+	if err = c.Hello("localhost"); err != nil {
+		return err
+	}
+	if err = c.Auth(auth); err != nil {
+		return err
+	}
+	if err = c.Mail(from); err != nil {
+		return err
+	}
+	for _, addr := range to {
+		if err = c.Rcpt(addr); err != nil {
+			return err
+		}
+	}
+	w, err := c.Data()
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(msg)
+	if err != nil {
+		return err
+	}
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+	return c.Quit()
+}
+
+// validateLine checks to see if a line has CR or LF as per RFC 5321
+func validateLine(line string) error {
+	if strings.ContainsAny(line, "\n\r") {
+		return errors.New("a line must not contain CR or LF")
+	}
+	return nil
+}
