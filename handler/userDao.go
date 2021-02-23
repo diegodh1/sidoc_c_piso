@@ -4,6 +4,7 @@ import (
 	"strings"
 	"gorm.io/gorm"
 	"time"
+	"errors"
 )
 
 //CreateUser func
@@ -127,9 +128,12 @@ func userVerification(userID string, db *gorm.DB) bool{
 
 func scanUser(userID string, userApp *AppUser, db *gorm.DB) error {
 
-	if err := db.Raw("SELECT * FROM app_user WHERE app_user_id = ?", userID).Scan(userApp).Error; err != nil {
-		return err
+	db.Raw("SELECT * FROM app_user WHERE app_user_id = ?", userID).Scan(userApp)
+		
+	if userApp.AppUserID == ""{
+		return errors.New("No encontrado")
 	}
+
 	return nil
 }
 
@@ -210,3 +214,19 @@ func GetUsersERP(name string, db *gorm.DB) Response {
     
 	return Response{Payload: usuarios, Message: "OK", Status: 200}
 }
+
+func ChangeUserPassword(user *UserPassChange, db *gorm.DB) Response {
+	userApp := AppUser{}
+	if err := scanUser(user.AppUserID, &userApp, db); err != nil {
+		return Response{Payload: nil, Message: "El usuario no está registrado en la base de datos", Status: 403}
+	}
+
+	if CheckPasswordHash(user.AppUserPasswordOld, userApp.AppUserPassword) {
+		userApp.AppUserPassword = HashPassword(user.AppUserPasswordNew)
+		if queryRes := db.Where("app_user_id = ?", userApp.AppUserID).Omit("AppUserID", "AppUserName", "AppUserLastName", "AppUserEmail", "AppUserErpID", "AppUserStatus", "AppUserCdate").Updates(&userApp); queryRes.Error != nil || queryRes.RowsAffected == 0 {
+			return Response{Payload: nil, Message: "Error al actualizar", Status: 500}
+		}
+		return Response{Payload: nil, Message: "OK", Status: 200}
+	}
+	return Response{Payload: nil, Message: "Error con la contraseña antigua", Status: 403}
+}	
