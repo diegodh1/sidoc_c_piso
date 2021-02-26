@@ -2,8 +2,9 @@ package handler
 
 import (
 	"strings"
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 //CreateUser func
@@ -14,15 +15,15 @@ func CreateUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) Response
 	case strings.TrimSpace(user.AppUserName) == "":
 		return Response{Payload: nil, Message: "El nombre es obligatorio", Status: 400}
 	case strings.TrimSpace(user.AppUserLastName) == "":
-		return Response{Payload: nil, Message: "El apellido es obligatorio", Status: 400}	
+		return Response{Payload: nil, Message: "El apellido es obligatorio", Status: 400}
 	case strings.TrimSpace(user.AppUserEmail) == "" || !ValidEmail(user.AppUserEmail):
 		return Response{Payload: nil, Message: "El correo es obligatorio", Status: 400}
 	case user.AppUserPassword == "":
-		return Response{Payload: nil, Message: "La contraseña no puede ser vacia", Status: 400}	
+		return Response{Payload: nil, Message: "La contraseña no puede ser vacia", Status: 400}
 	case user.AppUserErpID == -1:
 		return Response{Payload: nil, Message: "Debe seleccionar un usuario de ERP", Status: 400}
 	default:
-		if(!erpVerification(user.AppUserErpID, db)){
+		if !erpVerification(user.AppUserErpID, db) {
 			return Response{Payload: nil, Message: "No es un usuario valido de ERP", Status: 400}
 		}
 		user.AppUserName = strings.ToUpper(user.AppUserName)
@@ -39,8 +40,8 @@ func CreateUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) Response
 		}
 
 		for _, v := range *profiles {
-            assignProfile(&v, db)
-        }
+			assignProfile(&v, db)
+		}
 		return Response{Payload: nil, Message: "Registro Realizado!", Status: 201}
 	}
 }
@@ -50,13 +51,13 @@ func UpdateProfileUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) R
 	case strings.TrimSpace(user.AppUserName) == "":
 		return Response{Payload: nil, Message: "El nombre es obligatorio", Status: 400}
 	case strings.TrimSpace(user.AppUserLastName) == "":
-		return Response{Payload: nil, Message: "El apellido es obligatorio", Status: 400}	
+		return Response{Payload: nil, Message: "El apellido es obligatorio", Status: 400}
 	case strings.TrimSpace(user.AppUserEmail) == "" || !ValidEmail(user.AppUserEmail):
 		return Response{Payload: nil, Message: "El correo es obligatorio", Status: 400}
 	case user.AppUserErpID == -1:
 		return Response{Payload: nil, Message: "Debe seleccionar un usuario de ERP", Status: 400}
 	default:
-		if(!erpVerification(user.AppUserErpID, db)){
+		if !erpVerification(user.AppUserErpID, db) {
 			return Response{Payload: nil, Message: "No es un usuario valido de ERP", Status: 400}
 		}
 		user.AppUserName = strings.ToUpper(user.AppUserName)
@@ -65,17 +66,17 @@ func UpdateProfileUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) R
 			return Response{Payload: nil, Message: "Error al actualizar o no se encontró el usuario", Status: 404}
 		}
 		for _, v := range *profiles {
-            updateAssign(&v, db)
-        }
-		
+			updateAssign(&v, db)
+		}
+
 		return Response{Payload: nil, Message: "Registro actualizado!", Status: 200}
-	}	
+	}
 }
 
-func erpVerification(id int, db *gorm.DB) bool{
+func erpVerification(id int, db *gorm.DB) bool {
 	erpUser := []UsuariosErp{}
 
-	if err := db.Find(&erpUser, "f552_rowid = ?", id).Error; err != nil || len(erpUser)==0{
+	if err := db.Find(&erpUser, "f552_rowid = ?", id).Error; err != nil || len(erpUser) == 0 {
 		return false
 	}
 	return true
@@ -88,7 +89,7 @@ func Login(userID string, password string, db *gorm.DB) Response {
 		return Response{Payload: nil, Message: "El usuario no está registrado en la base de datos", Status: 403}
 	}
 	switch {
-	case !CheckPasswordHash(password,userApp.AppUserPassword):
+	case !CheckPasswordHash(password, userApp.AppUserPassword):
 		return Response{Payload: nil, Message: "Contraseña incorrecta", Status: 401}
 	case *userApp.AppUserStatus == false:
 		return Response{Payload: nil, Message: "El usuario no está activo en el sistema", Status: 403}
@@ -100,7 +101,7 @@ func Login(userID string, password string, db *gorm.DB) Response {
 		}
 		var rols []string
 		profiles := getProfiles(userID, db)
-		db.Raw("SELECT app_submenu_id FROM app_profile_menu INNER JOIN app_user_profile ON app_profile_menu.app_profile_id = app_user_profile.app_profile_id WHERE app_user_id = ?",userID).Scan(&rols)
+		db.Raw("SELECT app_submenu_id FROM app_profile_menu INNER JOIN app_user_profile ON app_profile_menu.app_profile_id = app_user_profile.app_profile_id WHERE app_user_id = ?", userID).Scan(&rols)
 		token, err := CreateToken(userApp.AppUserID, rols)
 		if err != nil {
 			return Response{Payload: nil, Message: "Error interno del servidor", Status: 500}
@@ -115,10 +116,10 @@ func Login(userID string, password string, db *gorm.DB) Response {
 
 }
 
-func userVerification(userID string, db *gorm.DB) bool{
+func userVerification(userID string, db *gorm.DB) bool {
 	userApp := []AppUser{}
 
-	if err := db.Find(&userApp, "app_user_id = ?", userID).Error; err != nil || len(userApp)==0{
+	if err := db.Find(&userApp, "app_user_id = ?", userID).Error; err != nil || len(userApp) == 0 {
 		return false
 	}
 	return true
@@ -140,8 +141,8 @@ func FindUserById(userID string, db *gorm.DB) Response {
 	}
 	profiles := getProfiles(userID, db)
 	var payload struct {
-			User     AppUser
-			Profiles []AppUserProfile
+		User     AppUser
+		Profiles []AppUserProfile
 	}
 	payload.Profiles = profiles
 	payload.User = userApp
@@ -159,8 +160,8 @@ func GeneratePassResetCode(userID string, db *gorm.DB) Response {
 		return Response{Payload: nil, Message: "No se pudo enviar el codigo de verificación", Status: 500}
 	}
 	verificationData := VerificationData{
-		Email: userApp.AppUserEmail,
-		Code:  verCod,
+		Email:     userApp.AppUserEmail,
+		Code:      verCod,
 		ExpiresAt: time.Now().Add(time.Minute * time.Duration(5)),
 	}
 	if err := db.Create(&verificationData).Error; err != nil {
@@ -169,10 +170,10 @@ func GeneratePassResetCode(userID string, db *gorm.DB) Response {
 		}
 		return Response{Payload: nil, Message: "Error interno al guardar el codigo de verificación", Status: 500}
 	}
-	
+
 	mail := strings.Split(userApp.AppUserEmail, "@")
-	
-	return Response{Payload: nil, Message: "OK: Revise su correo: "+"@"+mail[1], Status: 200}
+
+	return Response{Payload: nil, Message: "OK: Revise su correo: " + "@" + mail[1], Status: 200}
 }
 
 func ResetWithNewPass(user *UserPassReset, db *gorm.DB) Response {
@@ -182,15 +183,15 @@ func ResetWithNewPass(user *UserPassReset, db *gorm.DB) Response {
 	}
 	datVer := VerificationData{}
 	if err := db.Raw("SELECT * FROM verification_data WHERE email = ?", userApp.AppUserEmail).Scan(&datVer).Error; err != nil {
-		return Response{Payload: nil, Message: "No existe asignado un cambio de contraseña", Status: 403} 
+		return Response{Payload: nil, Message: "No existe asignado un cambio de contraseña", Status: 403}
 	}
 	if datVer.Code != user.Code {
-		return Response{Payload: nil, Message: "El codigo suministrado no corresponde al enviado por correo", Status: 403} 
+		return Response{Payload: nil, Message: "El codigo suministrado no corresponde al enviado por correo", Status: 403}
 	}
 	if datVer.ExpiresAt.Before(time.Now()) {
-		return Response{Payload: nil, Message: "El codigo suministrado ya expiro", Status: 403} 
+		return Response{Payload: nil, Message: "El codigo suministrado ya expiro", Status: 403}
 	}
-	
+
 	userApp.AppUserPassword = HashPassword(userApp.AppUserPassword)
 	if userApp.AppUserPassword == "" {
 		return Response{Payload: nil, Message: "No se pudo crear el registro", Status: 500}
@@ -207,6 +208,6 @@ func ResetWithNewPass(user *UserPassReset, db *gorm.DB) Response {
 func GetUsersERP(name string, db *gorm.DB) Response {
 	usuarios := []UsuariosErp{}
 	db.Where("f552_nombre LIKE ?", "%"+name+"%").Find(&usuarios).Order("f552_rowid").Limit(10)
-    
+
 	return Response{Payload: usuarios, Message: "OK", Status: 200}
 }
