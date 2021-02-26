@@ -66,3 +66,9 @@ type UserPassReset struct {
 	Code      string    `json:"Code"`
 	AppUserPassword string `json:"AppUserPassword"`
 }
+
+type UserPassChange struct {
+	AppUserID   string `json:"AppUserID" validate:"required"`
+	AppUserPasswordOld string `json:"AppUserPasswordOld" validate:"required"`
+	AppUserPasswordNew string `json:"AppUserPasswordNew" validate:"required"`
+}

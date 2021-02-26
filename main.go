@@ -28,6 +28,7 @@ func main() {
 	r.POST("/user/update", routes.UpdateProfileUser(db))
 	r.POST("/user/pass/code", routes.GenerateResetPass(db))
 	r.POST("/user/pass/reset", routes.ResetPass(db))
+	r.POST("user/changePass", routes.ChangeUserPassword(db))
 	//r.Use(middlewares.TokenMiddleware(0))
 	r.POST("/user/create", routes.CreateUser(db))
 	r.Run(":3000")

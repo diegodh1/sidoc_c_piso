@@ -81,6 +81,8 @@ func EnviarCorreo(to string, id string,codVerf string) bool {
 		<tr>
 		<td>Correo</td>
 		<td>Codigo de verf</td>
+		</tr>
+		<tr>
 		<td>%s</td>
 		<td>%s</td>
 		</tr>
@@ -91,7 +93,7 @@ func EnviarCorreo(to string, id string,codVerf string) bool {
 		</html>`, to, codVerf)
 
 
-	msg := fromM+toM+subject+"\r\n"+body+"\r\nOk\r\n"
+	msg := fromM+toM+subject+"Content-Type: text/html; charset=\"utf-8\"\r\n\r\n"+body+"\r\n"
     
 	auth := smtp.PlainAuth("", from, pass, "mail.sidocsa.com")
     // Send the email to user
