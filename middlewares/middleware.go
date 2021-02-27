@@ -8,7 +8,7 @@ import (
 	)
 
 // Add more
-var options = [3]string{"CREAR_USUARIOS", "EDITAR_USUARIOS", "ASIGNAR_PERFILES"}
+var options = [3]string{"CREAR_USUARIOS", "EDITAR_USUARIOS", "BUSCAR_USUARIO_ERP"}
 
 //TokenMiddleware func
 func TokenMiddleware(option byte) gin.HandlerFunc {
@@ -16,13 +16,13 @@ func TokenMiddleware(option byte) gin.HandlerFunc {
         reqToken := c.Request.Header.Get("Authorization")
         splitToken := strings.Split(reqToken, "Bearer")
         if len(splitToken) != 2 {
-            c.AbortWithStatusJSON(401, gin.H{"payload": nil, "message": "Tokén no válido B", "status": 401})
+            c.AbortWithStatusJSON(401, gin.H{"payload": nil, "message": "No se envío Token", "status": 401})
             return
         }
         reqToken = strings.TrimSpace(splitToken[1])
         id, rols := decodeJWT(reqToken)
         if id == "" {
-			c.AbortWithStatusJSON(401, gin.H{"payload": nil, "message": "Tokén no válido D", "status": 401})
+			c.AbortWithStatusJSON(401, gin.H{"payload": nil, "message": "Tokén no válido", "status": 401})
             return
 		}   
 		for _, rol := range rols{
