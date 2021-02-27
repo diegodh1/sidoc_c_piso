@@ -12,7 +12,7 @@ type AppUser struct {
 	AppUserEmail    string
 	AppUserPassword string
 	AppUserErpID    int
-	AppUserStatus   *bool `gorm:"default:true;"`
+	AppUserStatus   *bool     `gorm:"default:true;"`
 	AppUserCdate    time.Time `gorm:"default:now();"`
 }
 
@@ -31,44 +31,86 @@ type Response struct {
 
 //LoginUser struct login
 type LoginUser struct {
-	AppUserID   string `json:"AppUserID"`
+	AppUserID       string `json:"AppUserID"`
 	AppUserPassword string `json:"AppUserPassword"`
 }
 
 //User struct
 type User struct {
-    User     AppUser
-    Profiles []AppUserProfile
+	User     AppUser
+	Profiles []AppUserProfile
 }
 
+//AppUserProfile struct
 type AppUserProfile struct {
-	AppProfileID string
-	AppUserID string
-	AppUserProfileStatus *bool	`gorm:"default:true;"`
-	AppUserProfileCdate time.Time `gorm:"default:now();"`
+	AppProfileID         string
+	AppUserID            string
+	AppUserProfileStatus *bool     `gorm:"default:true;"`
+	AppUserProfileCdate  time.Time `gorm:"default:now();"`
 }
 
 //AppProfile struct
 type AppProfile struct {
-	AppProfileID string
-	AppProfileStatus *bool `gorm:"default:true;"`
-	AppProfileCdate time.Time `gorm:"default:now();"`
+	AppProfileID     string
+	AppProfileStatus *bool     `gorm:"default:true;"`
+	AppProfileCdate  time.Time `gorm:"default:now();"`
 }
 
+//VerificationData struct
 type VerificationData struct {
-	Email     string    
-	Code      string    
+	Email     string
+	Code      string
 	ExpiresAt time.Time
 }
 
+//UserPassReset struct
 type UserPassReset struct {
-	AppUserID   string `json:"AppUserID" validate:"required"`
-	Code      string    `json:"Code"`
+	AppUserID       string `json:"AppUserID" validate:"required"`
+	Code            string `json:"Code"`
 	AppUserPassword string `json:"AppUserPassword"`
 }
 
+//UserPassChange struct
 type UserPassChange struct {
-	AppUserID   string `json:"AppUserID" validate:"required"`
+	AppUserID          string `json:"AppUserID" validate:"required"`
 	AppUserPasswordOld string `json:"AppUserPasswordOld" validate:"required"`
 	AppUserPasswordNew string `json:"AppUserPasswordNew" validate:"required"`
+}
+
+//OrdenesCompraPendientes struct
+type OrdenesCompraPendientes struct {
+	Nit               string
+	Proveedor         string
+	F420Rowid         int
+	F420IDTipoDocto   string
+	F420Fecha         time.Time
+	IDTerceroSolicita int
+	UsuarioAprobador  string
+	F420IndEstado     int
+}
+
+//OrdenesCompraItemsPendientes struct
+type OrdenesCompraItemsPendientes struct {
+	F420Rowid       int
+	Codigo          int
+	Descripcion     string
+	Referencia      string
+	Unidad          string
+	Pedidas         float32
+	Entradas        float32
+	Pendientes      float32
+	PrecioUnidad    float32
+	IDEstadoItem    float32
+	IdrowItemCompra int
+	DetalleItem     string
+	NotaItem        string
+}
+
+//EventosErp Struct
+type EventosErp struct {
+	EventoTipo    string
+	EventoParam1  string
+	EventoParam2  string
+	EventoParam3  string
+	EventoPruebas bool
 }

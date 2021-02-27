@@ -43,6 +43,7 @@ func GetUsersERP(db *gorm.DB) gin.HandlerFunc {
 	return gin.HandlerFunc(fn)
 }
 
+//UpdateProfileUser func
 func UpdateProfileUser(db *gorm.DB) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		var user handler.User
@@ -64,6 +65,7 @@ func UpdateProfileUser(db *gorm.DB) gin.HandlerFunc {
 	return gin.HandlerFunc(fn)
 }
 
+//CreateProfile func
 func CreateProfile(db *gorm.DB) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		var profile handler.AppProfile
@@ -109,10 +111,11 @@ func Login(db *gorm.DB) gin.HandlerFunc {
 	return gin.HandlerFunc(fn)
 }
 
-func FindUserById(db *gorm.DB) gin.HandlerFunc{
+//FindUserByID func
+func FindUserByID(db *gorm.DB) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		param := c.Param("userID")
-		response := handler.FindUserById(param, db)
+		response := handler.FindUserByID(param, db)
 		c.JSON(response.Status, gin.H{
 			"payload": response.Payload,
 			"message": response.Message,
@@ -122,7 +125,8 @@ func FindUserById(db *gorm.DB) gin.HandlerFunc{
 	return gin.HandlerFunc(fn)
 }
 
-func GetAllProfiles(db *gorm.DB) gin.HandlerFunc{
+//GetAllProfiles func
+func GetAllProfiles(db *gorm.DB) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		response := handler.GetAllProfiles(db)
 		c.JSON(response.Status, gin.H{
@@ -134,7 +138,8 @@ func GetAllProfiles(db *gorm.DB) gin.HandlerFunc{
 	return gin.HandlerFunc(fn)
 }
 
-func GenerateResetPass(db *gorm.DB)  gin.HandlerFunc {
+//GenerateResetPass func
+func GenerateResetPass(db *gorm.DB) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		var user handler.UserPassReset
 		err := c.BindJSON(&user)
@@ -154,11 +159,12 @@ func GenerateResetPass(db *gorm.DB)  gin.HandlerFunc {
 			})
 		}
 	}
-	
+
 	return gin.HandlerFunc(fn)
 }
 
-func ResetPass(db *gorm.DB)  gin.HandlerFunc {
+//ResetPass func
+func ResetPass(db *gorm.DB) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		var user handler.UserPassReset
 		err := c.BindJSON(&user)
@@ -178,11 +184,12 @@ func ResetPass(db *gorm.DB)  gin.HandlerFunc {
 			})
 		}
 	}
-	
+
 	return gin.HandlerFunc(fn)
 }
 
-func ChangeUserPassword(db *gorm.DB)  gin.HandlerFunc {
+//ChangeUserPassword func
+func ChangeUserPassword(db *gorm.DB) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		var user handler.UserPassChange
 		err := c.BindJSON(&user)
@@ -202,7 +209,37 @@ func ChangeUserPassword(db *gorm.DB)  gin.HandlerFunc {
 			})
 		}
 	}
-	
+
 	return gin.HandlerFunc(fn)
 }
 
+//PURSHASE ORDERS
+
+//GetPendingOrdersByUser func
+func GetPendingOrdersByUser(db *gorm.DB) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		userID := c.Param("userID")
+		tipoDoc := c.Param("tipoDoc")
+		response := handler.GetPendingOrdersByUser(userID, tipoDoc, db)
+		c.JSON(response.Status, gin.H{
+			"payload": response.Payload,
+			"message": response.Message,
+			"status":  response.Status,
+		})
+	}
+	return gin.HandlerFunc(fn)
+}
+
+//GetPendingItemsByOrder func
+func GetPendingItemsByOrder(db *gorm.DB) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		orderID := c.Param("orderID")
+		response := handler.GetPendingItemsByOrder(orderID, db)
+		c.JSON(response.Status, gin.H{
+			"payload": response.Payload,
+			"message": response.Message,
+			"status":  response.Status,
+		})
+	}
+	return gin.HandlerFunc(fn)
+}

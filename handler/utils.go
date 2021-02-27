@@ -1,29 +1,31 @@
 package handler
 
 import (
-	"golang.org/x/crypto/bcrypt"
-	"github.com/dgrijalva/jwt-go"
-	"strings"
-	"regexp"
-	"os"
 	"crypto/rand"
+	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"net"
-	"crypto/tls"
 	"net/smtp"
-	"errors"
-	)
+	"os"
+	"regexp"
+	"strings"
+
+	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
+)
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 var table = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
 
+//CreateToken func
 func CreateToken(userid string, rols []string) (string, error) {
 	var err error
 	//Creating Access Token
 	atClaims := jwt.MapClaims{}
 	atClaims["user_id"] = userid
-	atClaims["rols"] = strings.Join(rols,", ")
+	atClaims["rols"] = strings.Join(rols, ", ")
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	token, err := at.SignedString([]byte("ACCESS_SECRET"))
 	if err != nil {
@@ -32,11 +34,13 @@ func CreateToken(userid string, rols []string) (string, error) {
 	return token, nil
 }
 
+//CheckPasswordHash func
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
 
+//HashPassword func
 func HashPassword(password string) string {
 	bytesPass, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
@@ -45,6 +49,7 @@ func HashPassword(password string) string {
 	return string(bytesPass)
 }
 
+//ValidEmail func
 func ValidEmail(email string) bool {
 
 	if !emailRegex.MatchString(email) {
@@ -54,14 +59,15 @@ func ValidEmail(email string) bool {
 	return true
 }
 
-func EnviarCorreo(to string, id string,codVerf string) bool {
-	
-	if(!ValidEmail(to)){
+//EnviarCorreo func
+func EnviarCorreo(to string, id string, codVerf string) bool {
+
+	if !ValidEmail(to) {
 		return false
 	}
-	
-    from := "app.sidoc@sidocsa.com"
-    pass := os.Getenv("SIDOC_EMAIL_PASS")
+
+	from := "app.sidoc@sidocsa.com"
+	pass := os.Getenv("SIDOC_EMAIL_PASS")
 	fromM := fmt.Sprintf("From: <%s>\r\n", from)
 	toM := fmt.Sprintf("To: <%s>\r\n", "recipient@gmail.com")
 	subject := "Subject: Cambio de contraseña\r\n"
@@ -92,30 +98,31 @@ func EnviarCorreo(to string, id string,codVerf string) bool {
 		<p>Correo generado automaticamente.</p></body>
 		</html>`, to, codVerf)
 
+	msg := fromM + toM + subject + "Content-Type: text/html; charset=\"utf-8\"\r\n\r\n" + body + "\r\n"
 
-	msg := fromM+toM+subject+"Content-Type: text/html; charset=\"utf-8\"\r\n\r\n"+body+"\r\n"
-    
 	auth := smtp.PlainAuth("", from, pass, "mail.sidocsa.com")
-    // Send the email to user
-    
-    if err := SendMailTLS("mail.sidocsa.com:465", auth, from, []string{to}, []byte(msg)); err != nil {
-        return false
-    }
-    return true
+	// Send the email to user
+
+	if err := SendMailTLS("mail.sidocsa.com:465", auth, from, []string{to}, []byte(msg)); err != nil {
+		return false
+	}
+	return true
 }
 
+//EncodeToString func
 func EncodeToString(max int) string {
-    b := make([]byte, max)
-    n, err := io.ReadAtLeast(rand.Reader, b, max)
-    if n != max {
-        panic(err)
-    }
-    for i := 0; i < len(b); i++ {
-        b[i] = table[int(b[i])%len(table)]
-    }
-    return string(b)
+	b := make([]byte, max)
+	n, err := io.ReadAtLeast(rand.Reader, b, max)
+	if n != max {
+		panic(err)
+	}
+	for i := 0; i < len(b); i++ {
+		b[i] = table[int(b[i])%len(table)]
+	}
+	return string(b)
 }
 
+//SendMailTLS func
 func SendMailTLS(addr string, auth smtp.Auth, from string, to []string, msg []byte) error {
 	host, _, err := net.SplitHostPort(addr)
 	if err != nil {

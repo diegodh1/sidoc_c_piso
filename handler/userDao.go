@@ -47,6 +47,7 @@ func CreateUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) Response
 	}
 }
 
+//UpdateProfileUser struct
 func UpdateProfileUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) Response {
 	switch {
 	case strings.TrimSpace(user.AppUserName) == "":
@@ -138,7 +139,8 @@ func scanUser(userID string, userApp *AppUser, db *gorm.DB) error {
 	return nil
 }
 
-func FindUserById(userID string, db *gorm.DB) Response {
+//FindUserByID func
+func FindUserByID(userID string, db *gorm.DB) Response {
 	userApp := AppUser{}
 	if err := scanUser(userID, &userApp, db); err != nil {
 		return Response{Payload: nil, Message: "El usuario no está registrado en la base de datos", Status: 403}
@@ -154,6 +156,7 @@ func FindUserById(userID string, db *gorm.DB) Response {
 	return Response{Payload: payload, Message: "OK", Status: 200}
 }
 
+//GeneratePassResetCode func
 func GeneratePassResetCode(userID string, db *gorm.DB) Response {
 	userApp := AppUser{}
 	if err := scanUser(userID, &userApp, db); err != nil {
@@ -181,6 +184,7 @@ func GeneratePassResetCode(userID string, db *gorm.DB) Response {
 	return Response{Payload: nil, Message: "OK: Revise su correo: " + "@" + mail[1], Status: 200}
 }
 
+//ResetWithNewPass func
 func ResetWithNewPass(user *UserPassReset, db *gorm.DB) Response {
 	userApp := AppUser{}
 	if err := scanUser(user.AppUserID, &userApp, db); err != nil {
@@ -217,6 +221,7 @@ func GetUsersERP(name string, db *gorm.DB) Response {
 	return Response{Payload: usuarios, Message: "OK", Status: 200}
 }
 
+//ChangeUserPassword func
 func ChangeUserPassword(user *UserPassChange, db *gorm.DB) Response {
 	userApp := AppUser{}
 	if err := scanUser(user.AppUserID, &userApp, db); err != nil {
