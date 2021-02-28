@@ -1,11 +1,23 @@
 package handler
 
 import "gorm.io/gorm"
+import "time"
 
 //GetPendingOrdersByUser func
-func GetPendingOrdersByUser(userID string, tipoDoc string, db *gorm.DB) Response {
+func GetPendingOrdersByUser(userID string, tipoDoc string, nit string, dateInit time.Time, dateFinal time.Time, ordenCompra int, db *gorm.DB) Response {
 	orders := []OrdenesCompraPendientes{}
-	db.Where("usuario_aprobador = ? and f420_ind_estado in (1,2) and f420_id_tipo_docto like ?", userID, tipoDoc+"%").Find(&orders)
+	tx := db.Model(&OrdenesCompraPendientes{}).Where("usuario_aprobador = ? and f420_ind_estado in (1,2) and f420_id_tipo_docto like ?", userID, tipoDoc+"%")
+	//db.Where("usuario_aprobador = ? and f420_ind_estado in (1,2) and f420_id_tipo_docto like ?", userID, tipoDoc+"%").Find(&orders)
+	if nit != "" {
+		tx = tx.Where("nit like ?", nit+"%")
+	}
+	if ordenCompra > 0 {
+		tx = tx.Where("f420_rowid = ?", +ordenCompra)
+	}
+	if !dateInit.IsZero() || !dateFinal.IsZero() {
+		tx = tx.Where("f420_fecha BETWEEN (?) AND (?)", dateInit, dateFinal)
+	}
+	tx.Find(&orders)
 	return Response{Payload: orders, Message: "ok", Status: 200}
 }
 

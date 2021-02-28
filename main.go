@@ -32,6 +32,7 @@ func main() {
 	r.POST("user/changePass", routes.ChangeUserPassword(db))
 	r.POST("/user/create", middlewares.TokenMiddleware(0), routes.CreateUser(db))
 	//ORDERS
+	//r.GET("/order/user/:userID/:tipoDoc/:nit/:date", routes.GetPendingOrdersByUser(db))
 	r.GET("/order/user/:userID/:tipoDoc", routes.GetPendingOrdersByUser(db))
 	r.GET("/order/items/:orderID", routes.GetPendingItemsByOrder(db))
 	r.POST("/order/details", routes.AddDetailsOrderCont(db))

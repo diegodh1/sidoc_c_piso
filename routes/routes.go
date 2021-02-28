@@ -2,9 +2,10 @@ package routes
 
 import (
 	handler "sidoc/handler"
-
+	"time"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"strconv"
 )
 
 //CreateUser func
@@ -220,7 +221,11 @@ func GetPendingOrdersByUser(db *gorm.DB) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		userID := c.Param("userID")
 		tipoDoc := c.Param("tipoDoc")
-		response := handler.GetPendingOrdersByUser(userID, tipoDoc, db)
+		nit := c.DefaultQuery("nit","")
+		dateInit, _ := time.Parse(time.RFC3339, c.Query("date_ini"))
+		dateFinal, _ := time.Parse(time.RFC3339, c.Query("date_fin"))
+		ordenCompra, _ := strconv.Atoi(c.Query("ord_comp")) 
+		response := handler.GetPendingOrdersByUser(userID, tipoDoc, nit, dateInit, dateFinal,ordenCompra, db)
 		c.JSON(response.Status, gin.H{
 			"payload": response.Payload,
 			"message": response.Message,
