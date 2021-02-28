@@ -23,6 +23,8 @@ func CreateUser(user *AppUser, profiles *[]AppUserProfile, db *gorm.DB) Response
 		return Response{Payload: nil, Message: "La contraseña no puede ser vacia", Status: 400}
 	case user.AppUserErpID == -1:
 		return Response{Payload: nil, Message: "Debe seleccionar un usuario de ERP", Status: 400}
+	case strings.TrimSpace(user.AppUserErpName) == "":
+		return Response{Payload: nil, Message: "Debe suministrar el nombre del usuario ERP", Status: 400}
 	default:
 		if !erpVerification(user.AppUserErpID, db) {
 			return Response{Payload: nil, Message: "No es un usuario valido de ERP", Status: 400}

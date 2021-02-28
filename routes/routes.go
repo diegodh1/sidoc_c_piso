@@ -243,3 +243,53 @@ func GetPendingItemsByOrder(db *gorm.DB) gin.HandlerFunc {
 	}
 	return gin.HandlerFunc(fn)
 }
+
+//ErpEvent func
+func ErpEvent(db *gorm.DB) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		var event handler.EventosErp
+		err := c.BindJSON(&event)
+		switch {
+		case err != nil:
+			c.JSON(400, gin.H{
+				"message": "Petición mal estructurada",
+				"payload": nil,
+				"status":  400,
+			})
+		default:
+			response := handler.ErpEvent(&event, db)
+			c.JSON(response.Status, gin.H{
+				"payload": response.Payload,
+				"message": response.Message,
+				"status":  response.Status,
+			})
+		}
+	}
+
+	return gin.HandlerFunc(fn)
+}
+
+//ErpEvent func
+func AddDetailsOrderCont(db *gorm.DB) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		var reqCont handler.ReqItemOrdPendCont
+		err := c.BindJSON(&reqCont)
+		switch {
+		case err != nil:
+			c.JSON(400, gin.H{
+				"message": "Petición mal estructurada",
+				"payload": nil,
+				"status":  400,
+			})
+		default:
+			response := handler.AddDetailsOrderCont(reqCont.OrdenID, reqCont.AprobadorID, &reqCont.ListaItems, db)
+			c.JSON(response.Status, gin.H{
+				"payload": response.Payload,
+				"message": response.Message,
+				"status":  response.Status,
+			})
+		}
+	}
+
+	return gin.HandlerFunc(fn)
+}

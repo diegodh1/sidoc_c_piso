@@ -15,3 +15,33 @@ func GetPendingItemsByOrder(orderID string, db *gorm.DB) Response {
 	db.Where("f420_rowid = ?", orderID).Find(&items)
 	return Response{Payload: items, Message: "ok", Status: 200}
 }
+
+//AddDetailsOrderCont func
+func AddDetailsOrderCont(orderID int, aprobID string, listaItems *[]ItemsCont, db *gorm.DB) Response {
+	toSave := ItemsOrdenesPendientes{}
+	var sucess bool
+	sucess = true
+	db.Transaction(func(tx *gorm.DB) error {
+		// do some database operations in the transaction (use 'tx' from this point, not 'db')
+		for _, v := range *listaItems {
+			toSave.CodCompra = orderID
+			toSave.CodItem = v.ItemID
+			toSave.TipoOrden = "SO"
+			toSave.Entradas = v.Cantidad
+			toSave.Pendiente = true
+			toSave.UsuarioAprobador = aprobID
+			if err := tx.Create(&toSave).Error; err != nil {
+				sucess = false
+				tx.Rollback()
+				return err
+			}
+		}
+		return tx.Commit().Error
+	})
+	if sucess {
+		return Response{Payload: nil, Message: "Registro Realizado!", Status: 201}
+	}
+
+	return Response{Payload: nil, Message: "No se pudo crear el registro", Status: 500}
+
+}

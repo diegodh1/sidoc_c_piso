@@ -12,6 +12,7 @@ type AppUser struct {
 	AppUserEmail    string
 	AppUserPassword string
 	AppUserErpID    int
+	AppUserErpName 	string
 	AppUserStatus   *bool     `gorm:"default:true;"`
 	AppUserCdate    time.Time `gorm:"default:now();"`
 }
@@ -111,6 +112,30 @@ type EventosErp struct {
 	EventoTipo    string
 	EventoParam1  string
 	EventoParam2  string
-	EventoParam3  string
 	EventoPruebas bool
+}
+
+//ItemsOrdenPendientes Struct
+type ItemsOrdenesPendientes struct {
+	CodCompra	int
+	CodItem 	int
+	TipoOrden string
+	Referencia string
+	UnidadMedida string
+	Entradas float32
+	Pendientes float32
+	Pendiente bool
+	UsuarioAprobador string
+}
+
+type ItemsCont struct {
+	ItemID int
+	Cantidad float32
+}
+
+//ReqItemOrdPend Struct
+type ReqItemOrdPendCont struct {
+	OrdenID int
+	AprobadorID string
+	ListaItems []ItemsCont
 }

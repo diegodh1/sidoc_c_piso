@@ -34,5 +34,8 @@ func main() {
 	//ORDERS
 	r.GET("/order/user/:userID/:tipoDoc", routes.GetPendingOrdersByUser(db))
 	r.GET("/order/items/:orderID", routes.GetPendingItemsByOrder(db))
+	r.POST("/order/details", routes.AddDetailsOrderCont(db))
+	//EVENTS ERP
+	r.POST("/event/create", routes.ErpEvent(db))
 	r.Run(":3000")
 }
