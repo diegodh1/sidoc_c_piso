@@ -26,7 +26,7 @@ func TokenMiddleware(option byte) gin.HandlerFunc {
             return
 		}   
 		for _, rol := range rols{
-			if (rol == options[option]){
+			if (strings.TrimSpace(rol) == options[option]){
 				c.Next()
 				return
 			}

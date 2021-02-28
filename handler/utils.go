@@ -25,7 +25,7 @@ func CreateToken(userid string, rols []string) (string, error) {
 	//Creating Access Token
 	atClaims := jwt.MapClaims{}
 	atClaims["user_id"] = userid
-	atClaims["rols"] = strings.Join(rols, ", ")
+	atClaims["rols"] = strings.Join(rols, ",")
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	token, err := at.SignedString([]byte("ACCESS_SECRET"))
 	if err != nil {
