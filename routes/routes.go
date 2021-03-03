@@ -224,8 +224,9 @@ func GetPendingOrdersByUser(db *gorm.DB) gin.HandlerFunc {
 		nit := c.DefaultQuery("nit","")
 		dateInit, _ := time.Parse(time.RFC3339, c.Query("date_ini"))
 		dateFinal, _ := time.Parse(time.RFC3339, c.Query("date_fin"))
-		ordenCompra, _ := strconv.Atoi(c.Query("ord_comp")) 
-		response := handler.GetPendingOrdersByUser(userID, tipoDoc, nit, dateInit, dateFinal,ordenCompra, db)
+		ordenCompra, _ := strconv.Atoi(c.Query("ord_comp"))
+		proveedor := c.Query("prov")
+		response := handler.GetPendingOrdersByUser(userID, tipoDoc, nit, dateInit, dateFinal, ordenCompra, proveedor, db)
 		c.JSON(response.Status, gin.H{
 			"payload": response.Payload,
 			"message": response.Message,

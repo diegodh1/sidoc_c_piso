@@ -4,9 +4,10 @@ import "gorm.io/gorm"
 import "time"
 
 //GetPendingOrdersByUser func
-func GetPendingOrdersByUser(userID string, tipoDoc string, nit string, dateInit time.Time, dateFinal time.Time, ordenCompra int, db *gorm.DB) Response {
+func GetPendingOrdersByUser(userID string, tipoDoc string, nit string, dateInit time.Time, dateFinal time.Time, ordenCompra int, proveedor string, db *gorm.DB) Response {
 	orders := []OrdenesCompraPendientes{}
-	tx := db.Model(&OrdenesCompraPendientes{}).Where("usuario_aprobador = ? and f420_ind_estado in (1,2) and f420_id_tipo_docto like ?", userID, tipoDoc+"%")
+	tx := db.Model(&OrdenesCompraPendientes{}).Where("usuario_aprobador = ? and f420_ind_estado in (1,2) and f420_id_tipo_docto like ?", userID, tipoDoc+"%").Order("f420_fecha desc")
+	//Select("TOP(?) *", 20)
 	//db.Where("usuario_aprobador = ? and f420_ind_estado in (1,2) and f420_id_tipo_docto like ?", userID, tipoDoc+"%").Find(&orders)
 	if nit != "" {
 		tx = tx.Where("nit like ?", nit+"%")
@@ -16,6 +17,9 @@ func GetPendingOrdersByUser(userID string, tipoDoc string, nit string, dateInit 
 	}
 	if !dateInit.IsZero() || !dateFinal.IsZero() {
 		tx = tx.Where("f420_fecha BETWEEN (?) AND (?)", dateInit, dateFinal)
+	}
+	if proveedor != "" {
+		tx = tx.Where("proveedor like ?", proveedor+"%")
 	}
 	tx.Find(&orders)
 	return Response{Payload: orders, Message: "ok", Status: 200}

@@ -20,12 +20,11 @@ var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z
 var table = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
 
 //CreateToken func
-func CreateToken(userid string, rols []string) (string, error) {
+func CreateToken(userid string) (string, error) {
 	var err error
 	//Creating Access Token
 	atClaims := jwt.MapClaims{}
 	atClaims["user_id"] = userid
-	atClaims["rols"] = strings.Join(rols, ",")
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	token, err := at.SignedString([]byte("ACCESS_SECRET"))
 	if err != nil {

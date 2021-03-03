@@ -103,10 +103,8 @@ func Login(userID string, password string, db *gorm.DB) Response {
 			Token    string
 			Profiles []AppUserProfile
 		}
-		var rols []string
 		profiles := getProfiles(userID, db)
-		db.Raw("SELECT app_submenu_id FROM app_profile_menu INNER JOIN app_user_profile ON app_profile_menu.app_profile_id = app_user_profile.app_profile_id WHERE app_user_id = ? AND app_user_profile_status = ?", userID, true).Scan(&rols)
-		token, err := CreateToken(userApp.AppUserID, rols)
+		token, err := CreateToken(userApp.AppUserID)
 		if err != nil {
 			return Response{Payload: nil, Message: "Error interno del servidor", Status: 500}
 		}
