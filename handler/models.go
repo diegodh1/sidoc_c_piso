@@ -2,6 +2,7 @@ package handler
 
 import (
 	"time"
+	"mime/multipart" 
 )
 
 //AppUser struct
@@ -138,4 +139,41 @@ type ReqItemOrdPendCont struct {
 	OrdenID int
 	AprobadorID string
 	ListaItems []ItemsCont
+}
+
+type FileFormReqOrders struct {
+	Body string `form:"body" binding:"required"`
+	Photo *multipart.FileHeader `form:"photo" binding:"required"`	
+}
+
+type ComprasItemEspecial struct {
+	IdItemEspCompra int
+	ItemEspCodigo int
+	ItemEspReferencia string
+	ItemEspDescripcion string
+	ItemEspActivo bool
+	ItemEspUsucrea string
+}
+
+type ComprasSolicitud struct {
+	IdSolCompra uint `gorm:"primaryKey;autoIncrement:true"`
+	SolCompraTDoc string
+	SolCompraUser uint
+	SolCompraCo string
+	SolCompraDocref string
+	SolCompraNotas string
+	SolCompraEstado uint
+	SolCompraEspecial bool
+	SolCompraAprobado time.Time
+}
+
+type ComprasDetalle struct {
+	IdSolCompra uint 
+	CompraDetCodigo uint
+	CompraDetDescripcion string
+	CompraDetUnd string
+	CompraDetCantidad float32
+	CompraDetNota string
+	CompraDetFechae time.Time
+	CompraDetUser uint
 }

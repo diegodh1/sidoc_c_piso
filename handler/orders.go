@@ -2,6 +2,8 @@ package handler
 
 import "gorm.io/gorm"
 import "time"
+import "mime/multipart"
+import "strings"
 
 //GetPendingOrdersByUser func
 func GetPendingOrdersByUser(userID string, tipoDoc string, nit string, dateInit time.Time, dateFinal time.Time, ordenCompra int, proveedor string, db *gorm.DB) Response {
@@ -33,11 +35,11 @@ func GetPendingItemsByOrder(orderID string, db *gorm.DB) Response {
 }
 
 //AddDetailsOrderCont func
-func AddDetailsOrderCont(orderID int, aprobID string, listaItems *[]ItemsCont, db *gorm.DB) Response {
+func AddDetailsOrderCont(orderID int, aprobID string, listaItems *[]ItemsCont, img *multipart.FileHeader, db *gorm.DB) Response {
 	toSave := ItemsOrdenesPendientes{}
 	var sucess bool
 	sucess = true
-	db.Transaction(func(tx *gorm.DB) error {
+	err := db.Transaction(func(tx *gorm.DB) error {
 		// do some database operations in the transaction (use 'tx' from this point, not 'db')
 		for _, v := range *listaItems {
 			toSave.CodCompra = orderID
@@ -55,7 +57,11 @@ func AddDetailsOrderCont(orderID int, aprobID string, listaItems *[]ItemsCont, d
 		return tx.Commit().Error
 	})
 	if sucess {
-		return Response{Payload: nil, Message: "Registro Realizado!", Status: 201}
+		return Response{Payload: img, Message: "Registro Realizado!", Status: 201}
+	}
+	
+	if strings.Contains(err.Error(), "PRIMARY KEY") {
+		return Response{Payload: nil, Message: "Esta OS ya fue revisada", Status: 400}
 	}
 
 	return Response{Payload: nil, Message: "No se pudo crear el registro", Status: 500}

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"strconv"
+	"encoding/json"
 )
 
 //CreateUser func
@@ -222,8 +223,8 @@ func GetPendingOrdersByUser(db *gorm.DB) gin.HandlerFunc {
 		userID := c.Param("userID")
 		tipoDoc := c.Param("tipoDoc")
 		nit := c.DefaultQuery("nit","")
-		dateInit, _ := time.Parse(time.RFC3339, c.Query("date_ini"))
-		dateFinal, _ := time.Parse(time.RFC3339, c.Query("date_fin"))
+		dateInit, _ := time.Parse("2006-01-02", c.Query("date_ini"))
+		dateFinal, _ := time.Parse("2006-01-02", c.Query("date_fin"))
 		ordenCompra, _ := strconv.Atoi(c.Query("ord_comp"))
 		proveedor := c.Query("prov")
 		response := handler.GetPendingOrdersByUser(userID, tipoDoc, nit, dateInit, dateFinal, ordenCompra, proveedor, db)
@@ -279,7 +280,8 @@ func ErpEvent(db *gorm.DB) gin.HandlerFunc {
 func AddDetailsOrderCont(db *gorm.DB) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		var reqCont handler.ReqItemOrdPendCont
-		err := c.BindJSON(&reqCont)
+		bindForm := handler.FileFormReqOrders{}
+		err := c.ShouldBind(&bindForm)
 		switch {
 		case err != nil:
 			c.JSON(400, gin.H{
@@ -288,7 +290,10 @@ func AddDetailsOrderCont(db *gorm.DB) gin.HandlerFunc {
 				"status":  400,
 			})
 		default:
-			response := handler.AddDetailsOrderCont(reqCont.OrdenID, reqCont.AprobadorID, &reqCont.ListaItems, db)
+			body := bindForm.Body
+			json.Unmarshal([]byte(body), &reqCont)
+			img := bindForm.Photo
+			response := handler.AddDetailsOrderCont(reqCont.OrdenID, reqCont.AprobadorID, &reqCont.ListaItems, img, db)
 			c.JSON(response.Status, gin.H{
 				"payload": response.Payload,
 				"message": response.Message,
@@ -299,3 +304,60 @@ func AddDetailsOrderCont(db *gorm.DB) gin.HandlerFunc {
 
 	return gin.HandlerFunc(fn)
 }
+
+//GetAllProfiles func
+func GetSpecialItems(db *gorm.DB) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		response := handler.GetSpecialItems(db)
+		c.JSON(response.Status, gin.H{
+			"payload": response.Payload,
+			"message": response.Message,
+			"status":  response.Status,
+		})
+	}
+	return gin.HandlerFunc(fn)
+}
+
+func AddSale(db *gorm.DB) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		var sales handler.ComprasSolicitud
+		err := c.BindJSON(&sales)
+		switch {
+		case err != nil:
+			c.JSON(400, gin.H{
+				"payload": nil, "message": "petición mal estructurada", "status": 400,
+			})
+		default:
+			response := handler.AddSale(&sales, db)
+			c.JSON(response.Status, gin.H{
+				"payload": response.Payload,
+				"message": response.Message,
+				"status":  response.Status,
+			})
+		}
+	}
+	return gin.HandlerFunc(fn)
+}
+
+/*//ErpEvent func
+func AddDetailsSales(db *gorm.DB) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		var []sales handler.ComprasDetalle
+		err := c.BindJSON(&sales)
+		switch {
+		case err != nil:
+			c.JSON(400, gin.H{
+				"payload": nil, "message": "petición mal estructurada", "status": 400,
+			})
+		default:
+			response := handler.AddSale(&sales, db)
+			c.JSON(response.Status, gin.H{
+				"payload": response.Payload,
+				"message": response.Message,
+				"status":  response.Status,
+			})
+		}
+	}
+
+	return gin.HandlerFunc(fn)
+}*/

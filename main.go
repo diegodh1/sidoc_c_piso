@@ -38,5 +38,8 @@ func main() {
 	r.POST("/order/details", routes.AddDetailsOrderCont(db))
 	//EVENTS ERP
 	r.POST("/event/create", routes.ErpEvent(db))
+	// Sales
+	r.GET("/sales/getAll", routes.GetSpecialItems(db))
+	r.POST("/sales/addSale", routes.AddSale(db))
 	r.Run(":3000")
 }
