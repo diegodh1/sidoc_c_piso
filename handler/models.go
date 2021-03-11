@@ -109,6 +109,9 @@ type OrdenesCompraItemsPendientes struct {
 }
 
 //EventosErp Struct
+// param1 -> num orden
+// param2 -> user aprob
+
 type EventosErp struct {
 	EventoTipo    string
 	EventoParam1  string
@@ -129,21 +132,22 @@ type ItemsOrdenesPendientes struct {
 	UsuarioAprobador string
 }
 
-type ItemsCont struct {
+/*type ItemsCont struct {
 	ItemID int
 	Cantidad float32
-}
+}*/
 
 //ReqItemOrdPend Struct
-type ReqItemOrdPendCont struct {
+type ReqItemOrdPend struct {
 	OrdenID int
 	AprobadorID string
-	ListaItems []ItemsCont
+	TipoOrden string
+	ListaItems []ItemsOrdenesPendientes
 }
 
 type FileFormReqOrders struct {
 	Body string `form:"body" binding:"required"`
-	Photo *multipart.FileHeader `form:"photo" binding:"required"`	
+	Photo *multipart.FileHeader `form:"photo" binding:"-"`	
 }
 
 type ComprasItemEspecial struct {

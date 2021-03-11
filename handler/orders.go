@@ -4,6 +4,7 @@ import "gorm.io/gorm"
 import "time"
 import "mime/multipart"
 import "strings"
+import "strconv"
 
 //GetPendingOrdersByUser func
 func GetPendingOrdersByUser(userID string, tipoDoc string, nit string, dateInit time.Time, dateFinal time.Time, ordenCompra int, proveedor string, db *gorm.DB) Response {
@@ -35,20 +36,22 @@ func GetPendingItemsByOrder(orderID string, db *gorm.DB) Response {
 }
 
 //AddDetailsOrderCont func
-func AddDetailsOrderCont(orderID int, aprobID string, listaItems *[]ItemsCont, img *multipart.FileHeader, db *gorm.DB) Response {
-	toSave := ItemsOrdenesPendientes{}
+func AddDetailsOrderCont(orderID int, aprobID string, tipo string, listaItems *[]ItemsOrdenesPendientes, img *multipart.FileHeader, db *gorm.DB) Response {
 	var sucess bool
 	sucess = true
 	err := db.Transaction(func(tx *gorm.DB) error {
+		id := strconv.Itoa(orderID)
+		event := EventosErp{EventoTipo: tipo, EventoParam1: id, EventoParam2: aprobID, EventoPruebas: true}
+		if err := ErpEvent(&event, db); err != nil {
+				sucess = false
+				tx.Rollback()
+				return err
+		}
 		// do some database operations in the transaction (use 'tx' from this point, not 'db')
 		for _, v := range *listaItems {
-			toSave.CodCompra = orderID
-			toSave.CodItem = v.ItemID
-			toSave.TipoOrden = "SO"
-			toSave.Entradas = v.Cantidad
-			toSave.Pendiente = true
-			toSave.UsuarioAprobador = aprobID
-			if err := tx.Create(&toSave).Error; err != nil {
+			v.CodCompra = orderID
+			v.UsuarioAprobador = aprobID
+			if err := tx.Create(&v).Error; err != nil {
 				sucess = false
 				tx.Rollback()
 				return err
@@ -57,11 +60,11 @@ func AddDetailsOrderCont(orderID int, aprobID string, listaItems *[]ItemsCont, i
 		return tx.Commit().Error
 	})
 	if sucess {
-		return Response{Payload: img, Message: "Registro Realizado!", Status: 201}
+		return Response{Payload: nil, Message: "Registro Realizado!", Status: 201}
 	}
 	
 	if strings.Contains(err.Error(), "PRIMARY KEY") {
-		return Response{Payload: nil, Message: "Esta OS ya fue revisada", Status: 400}
+		return Response{Payload: nil, Message: "Esta Orden ya fue revisada", Status: 400}
 	}
 
 	return Response{Payload: nil, Message: "No se pudo crear el registro", Status: 500}
