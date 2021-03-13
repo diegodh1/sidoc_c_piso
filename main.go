@@ -36,6 +36,7 @@ func main() {
 	r.GET("/order/user/:userID/:tipoDoc", routes.GetPendingOrdersByUser(db))
 	r.GET("/order/items/:orderID", routes.GetPendingItemsByOrder(db))
 	r.POST("/order/approved", routes.AddDetailsOrderCont(db))
+	r.POST("/order/photoRemision", routes.AddPhotoToOrder(db))
 	// Sales
 	r.GET("/sales/getAll", routes.GetSpecialItems(db))
 	r.POST("/sales/addSale", routes.AddSale(db))

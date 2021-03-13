@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"strconv"
-	"encoding/json"
 )
 
 //CreateUser func
@@ -255,6 +254,30 @@ func GetPendingItemsByOrder(db *gorm.DB) gin.HandlerFunc {
 func AddDetailsOrderCont(db *gorm.DB) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		var reqCont handler.ReqItemOrdPend
+		err := c.BindJSON(&reqCont)
+		switch {
+		case err != nil:
+			c.JSON(400, gin.H{
+				"message": "Petición mal estructurada",
+				"payload": nil,
+				"status":  400,
+			})
+		default:
+			response := handler.AddDetailsOrderCont(reqCont.OrdenID, reqCont.AprobadorID, reqCont.TipoOrden, &reqCont.ListaItems, db)
+			c.JSON(response.Status, gin.H{
+				"payload": response.Payload,
+				"message": response.Message,
+				"status":  response.Status,
+			})
+		}
+	}
+
+	return gin.HandlerFunc(fn)
+}
+
+
+func AddPhotoToOrder(db *gorm.DB) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
 		bindForm := handler.FileFormReqOrders{}
 		err := c.ShouldBind(&bindForm)
 		switch {
@@ -265,10 +288,8 @@ func AddDetailsOrderCont(db *gorm.DB) gin.HandlerFunc {
 				"status":  400,
 			})
 		default:
-			body := bindForm.Body
-			json.Unmarshal([]byte(body), &reqCont)
-			img := bindForm.Photo
-			response := handler.AddDetailsOrderCont(reqCont.OrdenID, reqCont.AprobadorID, reqCont.TipoOrden, &reqCont.ListaItems, img, db)
+			img, _ := c.FormFile("photo")
+			response := handler.AddPhotoToOrder(img, db)
 			c.JSON(response.Status, gin.H{
 				"payload": response.Payload,
 				"message": response.Message,

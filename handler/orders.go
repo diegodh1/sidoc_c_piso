@@ -36,7 +36,7 @@ func GetPendingItemsByOrder(orderID string, db *gorm.DB) Response {
 }
 
 //AddDetailsOrderCont func
-func AddDetailsOrderCont(orderID int, aprobID string, tipo string, listaItems *[]ItemsOrdenesPendientes, img *multipart.FileHeader, db *gorm.DB) Response {
+func AddDetailsOrderCont(orderID int, aprobID string, tipo string, listaItems *[]ItemsOrdenesPendientes, db *gorm.DB) Response {
 	var sucess bool
 	sucess = true
 	err := db.Transaction(func(tx *gorm.DB) error {
@@ -60,6 +60,7 @@ func AddDetailsOrderCont(orderID int, aprobID string, tipo string, listaItems *[
 		return tx.Commit().Error
 	})
 	if sucess {
+		
 		return Response{Payload: nil, Message: "Registro Realizado!", Status: 201}
 	}
 	
@@ -67,6 +68,16 @@ func AddDetailsOrderCont(orderID int, aprobID string, tipo string, listaItems *[
 		return Response{Payload: nil, Message: "Esta Orden ya fue revisada", Status: 400}
 	}
 
+
 	return Response{Payload: nil, Message: "No se pudo crear el registro", Status: 500}
 
+}
+
+func AddPhotoToOrder(img *multipart.FileHeader, db *gorm.DB) Response {
+	filename, err := UploadToAWS(img)
+	if err != nil {
+		return Response{Payload: nil, Message: "No se pudo subir la foto", Status: 500}
+	}
+
+	return Response{Payload: filename, Message: "Registro Realizado!", Status: 201}
 }

@@ -146,8 +146,9 @@ type ReqItemOrdPend struct {
 }
 
 type FileFormReqOrders struct {
-	Body string `form:"body" binding:"required"`
-	Photo *multipart.FileHeader `form:"photo" binding:"-"`	
+	OrdenID int
+	AprobadorID string
+	Photo *multipart.FileHeader `form:"photo" binding:"required"`	
 }
 
 type ComprasItemEspecial struct {
