@@ -104,7 +104,6 @@ type OrdenesCompraItemsPendientes struct {
 	Pendientes      float32
 	PrecioUnidad    float32
 	IDEstadoItem    float32
-	IdrowItemCompra int
 	DetalleItem     string
 	NotaItem        string
 }
