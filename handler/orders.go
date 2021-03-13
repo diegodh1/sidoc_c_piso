@@ -40,13 +40,7 @@ func AddDetailsOrderCont(orderID int, aprobID string, tipo string, listaItems *[
 	var sucess bool
 	sucess = true
 	err := db.Transaction(func(tx *gorm.DB) error {
-		id := strconv.Itoa(orderID)
-		event := EventosErp{EventoTipo: tipo, EventoParam1: id, EventoParam2: aprobID, EventoPruebas: true}
-		if err := ErpEvent(&event, db); err != nil {
-				sucess = false
-				tx.Rollback()
-				return err
-		}
+		
 		// do some database operations in the transaction (use 'tx' from this point, not 'db')
 		for _, v := range *listaItems {
 			v.CodCompra = orderID
@@ -57,6 +51,14 @@ func AddDetailsOrderCont(orderID int, aprobID string, tipo string, listaItems *[
 				return err
 			}
 		}
+		id := strconv.Itoa(orderID)
+		event := EventosErp{EventoTipo: "EA", EventoParam1: id, EventoParam2: aprobID, EventoParam3: tipo, EventoPruebas: true}
+		if err := ErpEvent(&event, db); err != nil {
+				sucess = false
+				tx.Rollback()
+				return err
+		}
+		
 		return tx.Commit().Error
 	})
 	if sucess {

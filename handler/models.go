@@ -94,6 +94,7 @@ type OrdenesCompraPendientes struct {
 //OrdenesCompraItemsPendientes struct
 type OrdenesCompraItemsPendientes struct {
 	F420Rowid       int
+	F421Rowid		int
 	Codigo          int
 	Descripcion     string
 	Referencia      string
@@ -116,6 +117,7 @@ type EventosErp struct {
 	EventoTipo    string
 	EventoParam1  string
 	EventoParam2  string
+	EventoParam3 string
 	EventoPruebas bool
 }
 
@@ -123,12 +125,13 @@ type EventosErp struct {
 type ItemsOrdenesPendientes struct {
 	CodCompra	int
 	CodItem 	int
-	TipoOrden string
-	Referencia string
+	TipoOrden 	string
+	F421Rowid 	int
+	Referencia 	string
 	UnidadMedida string
-	Entradas float32
-	Pendientes float32
-	Pendiente bool
+	Entradas 	float32
+	Pendientes 	float32
+	Pendiente 	bool
 	UsuarioAprobador string
 }
 
