@@ -85,6 +85,7 @@ type OrdenesCompraPendientes struct {
 	Proveedor         string
 	F420Rowid         int
 	F420IDTipoDocto   string
+	F420ConsecDocto   int
 	F420Fecha         time.Time
 	IDTerceroSolicita int
 	UsuarioAprobador  string
@@ -96,7 +97,6 @@ type OrdenesCompraItemsPendientes struct {
 	F420Rowid       int
 	F421Rowid		int
 	Codigo          int
-	F420ConsecDocto int
 	Descripcion     string
 	Referencia      string
 	Unidad          string
