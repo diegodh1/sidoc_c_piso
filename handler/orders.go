@@ -16,7 +16,7 @@ func GetPendingOrdersByUser(userID string, tipoDoc string, nit string, dateInit 
 		tx = tx.Where("nit like ?", nit+"%")
 	}
 	if ordenCompra > 0 {
-		tx = tx.Where("f420_rowid = ?", +ordenCompra)
+		tx = tx.Where("f420_consec_docto = ?", +ordenCompra)
 	}
 	if !dateInit.IsZero() || !dateFinal.IsZero() {
 		tx = tx.Where("f420_fecha BETWEEN (?) AND (?)", dateInit, dateFinal)
@@ -43,7 +43,6 @@ func AddDetailsOrderCont(orderID int, aprobID string, tipo string, listaItems *[
 		
 		// do some database operations in the transaction (use 'tx' from this point, not 'db')
 		for _, v := range *listaItems {
-			v.CodCompra = orderID
 			v.UsuarioAprobador = aprobID
 			if err := tx.Create(&v).Error; err != nil {
 				sucess = false
@@ -58,7 +57,7 @@ func AddDetailsOrderCont(orderID int, aprobID string, tipo string, listaItems *[
 				tx.Rollback()
 				return err
 		}
-		
+
 		return tx.Commit().Error
 	})
 	if sucess {

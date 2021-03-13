@@ -96,6 +96,7 @@ type OrdenesCompraItemsPendientes struct {
 	F420Rowid       int
 	F421Rowid		int
 	Codigo          int
+	F420ConsecDocto int
 	Descripcion     string
 	Referencia      string
 	Unidad          string
