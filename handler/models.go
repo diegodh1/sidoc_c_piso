@@ -129,6 +129,7 @@ type ItemsOrdenesPendientes struct {
 	F421Rowid 	int
 	Referencia 	string
 	UnidadMedida string
+	Pedidas     float32
 	Entradas 	float32
 	Pendientes 	float32
 	Pendiente 	bool

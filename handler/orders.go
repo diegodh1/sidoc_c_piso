@@ -5,6 +5,7 @@ import "time"
 import "mime/multipart"
 import "strings"
 import "strconv"
+import "errors"
 
 //GetPendingOrdersByUser func
 func GetPendingOrdersByUser(userID string, tipoDoc string, nit string, dateInit time.Time, dateFinal time.Time, ordenCompra int, proveedor string, db *gorm.DB) Response {
@@ -39,15 +40,34 @@ func GetPendingItemsByOrder(orderID string, db *gorm.DB) Response {
 func AddDetailsOrderCont(orderID int, aprobID string, tipo string, listaItems *[]ItemsOrdenesPendientes, db *gorm.DB) Response {
 	var sucess bool
 	sucess = true
+	if len(*listaItems) == 0 {
+		return Response{Payload: nil, Message: "No ha seleccionado ningún item para aprobar", Status: 400}		
+	}
+
 	err := db.Transaction(func(tx *gorm.DB) error {
 		
 		// do some database operations in the transaction (use 'tx' from this point, not 'db')
-		for _, v := range *listaItems {
-			v.UsuarioAprobador = aprobID
-			if err := tx.Create(&v).Error; err != nil {
-				sucess = false
-				tx.Rollback()
-				return err
+		if tipo == "OS" {
+			for _, v := range *listaItems {
+				v.UsuarioAprobador = aprobID
+				if err := tx.Create(&v).Error; err != nil {
+					sucess = false
+					tx.Rollback()
+					return err
+				}
+			}
+		}else{
+			for _, v := range *listaItems {
+				v.UsuarioAprobador = aprobID
+				if v.Entradas > v.Pedidas {
+					errors.New("Las cantidades entradas no pueden superar a las pedidas")
+				}
+				v.Pendientes = v.Pedidas - v.Entradas
+				if err := tx.Create(&v).Error; err != nil {
+					sucess = false
+					tx.Rollback()
+					return err
+				}
 			}
 		}
 		id := strconv.Itoa(orderID)
@@ -61,7 +81,6 @@ func AddDetailsOrderCont(orderID int, aprobID string, tipo string, listaItems *[
 		return tx.Commit().Error
 	})
 	if sucess {
-		
 		return Response{Payload: nil, Message: "Registro Realizado!", Status: 201}
 	}
 	
